@@ -3,7 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 import sqlite3
 
-# Conectar a la base de datos
 conn = sqlite3.connect('C:/db/rick_and_morty.db')
 c = conn.cursor()
 
@@ -17,7 +16,7 @@ for season in seasons:
     url = f'https://www.imdb.com/title/tt2861424/episodes?season={season}'
     response = requests.get(url)
     
-    # A chequear
+    # Chequeo de conexión
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -32,18 +31,14 @@ for season in seasons:
             ratings = store.find('span', class_ = 'ipl-rating-star__rating').text 
             rating.append(float(ratings))
 
-        # Crear un dataframe con los resultados de cada temporada y agregar una columna de temporada
         episode_df = pd.DataFrame({'episode_name': episode_name,'rating': rating})
         episode_df['season'] = season_number
         
-        # Imprimir los resultados de cada temporada
         print(f'Season {season}:')
         print(episode_df)
         
-        # Insertar los datos en la tabla
         for i in range(len(episode_name)):
             c.execute("INSERT OR REPLACE INTO imdb VALUES (?, ?, ?)", (episode_name[i], rating[i], season_number))
         conn.commit()
-
-# Cerrar la conexión a la base de datos
+        
 conn.close()
